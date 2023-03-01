@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from '../Services/authService';
 import { UserSignUpModel, UserSignInModel } from '../Models/UserModels';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -6,7 +6,7 @@ import { AccessTokenGuard } from 'src/Guards/accessToken.guard';
 import { RefreshTokenGuard } from 'src/Guards/refreshToken.guard';
 import { Request } from 'express';
 
-@ApiTags('auth')
+@ApiTags('Authentication')
 @Controller('/auth')
 export class AuthController {
     constructor(private authService: AuthService) { }
@@ -19,18 +19,10 @@ export class AuthController {
     }
 
     @Post('/login')
-    @ApiOperation({ summary: 'User login with email and password' })
+    @ApiOperation({ summary: 'User login with username/email and password' })
     @ApiResponse({ status: 200, description: 'Login Successful' })
     async signIn(@Body() userDetails: UserSignInModel) {
         return this.authService.signIn(userDetails);
-    }
-
-    @Get('/me')
-    @ApiBearerAuth()
-    @ApiOperation({ summary: 'Get Details of current logged in user' })
-    @UseGuards(AccessTokenGuard)
-    async getUser(@Req() req: Request) {
-        return this.authService.getUser(req.user['sub']);
     }
 
     @UseGuards(AccessTokenGuard)
@@ -58,32 +50,32 @@ export class AuthController {
     @ApiOperation({ summary: 'Verifies user account of the current logged in user' })
     async verifyOTP(
         @Req() req: Request,
-        @Query('otp') otp: number
+        @Query('otp') otp: string
     ) {
         return this.authService.verifyOTP(req.user['sub'], otp);
     }
 
     @Post('/forgot-password/:email')
-    @ApiOperation({ summary: 'Verifies user account of the current logged in user' })
+    @ApiOperation({ summary: 'For reseting the password of the user' })
     async forgotPassword(
         @Query('email') email: string,
     ) {
         return this.authService.forgotPassword(email);
     }
 
-    @Post('/confirm-otp/:email/:otp')
-    @ApiOperation({ summary: 'Verifies user account of the current logged in user' })
+    @Post('/reset-confirm-otp/:email/:otp')
+    @ApiOperation({ summary: 'Confirm otp for reseting the password' })
     async confirmOTP(
         @Query('email') email: string,
-        @Query('otp') otp: number
+        @Query('otp') otp: string
     ) {
         return this.authService.confirmOTP(email, otp);
     }
 
-    @Post('/update-password/:password')
+    @Patch('/update-password/:password')
     @ApiBearerAuth()
     @UseGuards(AccessTokenGuard)
-    @ApiOperation({ summary: 'Replace a token with a new one' })
+    @ApiOperation({ summary: 'Set a new password' })
     async updatePassword(
         @Req() req: Request,
         @Query('password') password: string

@@ -1,14 +1,15 @@
-import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from '../Schemas/User.schema';
 import { UserSignInModel, UserSignUpModel } from '../Models/UserModels';
-import { validateUser } from '../utils/validation';
+import { validateUserSignIn, validateUserSignUp } from '../utils/validation';
 import { encodePassword, comparePassword } from 'src/utils/bcrypt';
-import { TokenService } from '../utils/TokenService';
+import { TokenService } from './TokenService';
 import { encryptData, compareTokens } from '../utils/crypto';
 import * as otpGenerator from 'otp-generator';
 import { sendEmail } from '../utils/sendEmail';
+import * as gravatar from "gravatar"
 
 @Injectable()
 export class AuthService {
@@ -19,20 +20,21 @@ export class AuthService {
 
     //register a mew user
     async signUp(userDetails: UserSignUpModel) {
-        const validateUserInputs = validateUser(userDetails);
-        if (!validateUserInputs) {
-            return 'Registration failed';
-        }
-        const { name, email, password } = userDetails;
+        validateUserSignUp(userDetails)
+        const { username, phone, dob, name, email, password } = userDetails;
 
         const userExists = await this.userModel.findOne({ email });
         if (userExists) {
-            return 'user already exists';
+            return new ConflictException('user already exists');
         }
-
+        const avatar = gravatar.url(email, {
+            s: '200',
+            r: 'pg',
+            d: 'mm'
+        })
         const hashPassword = await encodePassword(password);
         const verificationOTP = otpGenerator.generate(6, { upperCaseAlphabets: false, specialChars: false, lowerCaseAlphabets: false, digits: true });
-        const newUser = new this.userModel({ name, email, password: hashPassword, verificationOTP, role: 1 });
+        const newUser = new this.userModel({ username, dob: new Date(dob.toString()).toDateString(), phone, name, email, avatar, password: hashPassword, verificationOTP, role: 1 });
         await newUser.save();
         sendEmail(email, "Email Verification", `Enter the code to verify your email address: ${verificationOTP}`);
         return this.updateRefreshToken(newUser._id.toString(), newUser.name);
@@ -40,12 +42,16 @@ export class AuthService {
 
     //SignIn Services
     async signIn(userDetails: UserSignInModel) {
-        const validateUserInputs = validateUser(userDetails);
-        if (!validateUserInputs) {
-            throw new BadRequestException('Invalid credentials');
+        validateUserSignIn(userDetails)
+        const { username, email, password } = userDetails;
+        let userExists = null
+        if (username) {
+            userExists = await this.userModel.findOne({ username });
         }
-        const { email, password } = userDetails;
-        const userExists = await this.userModel.findOne({ email });
+        else if (email) {
+            userExists = await this.userModel.findOne({ email });
+        }
+
         if (!userExists) {
             throw new BadRequestException('Invalid credentials');
         }
@@ -57,11 +63,6 @@ export class AuthService {
         }
 
         return this.updateRefreshToken(userExists._id.toString(), userExists.name)
-    }
-
-    //returns info of the user
-    async getUser(userId: string) {
-        return this.userModel.findById(userId, '_id name email');
     }
 
     // nullifies current logged in user's refresh token and logs out
@@ -88,7 +89,7 @@ export class AuthService {
     }
 
     //verify OTP
-    async verifyOTP(userId: string, otp: number) {
+    async verifyOTP(userId: string, otp: string) {
         const user = await this.userModel.findById(userId);
         if (!user || !otp) {
             throw new ForbiddenException('invalid OTP');
@@ -102,21 +103,19 @@ export class AuthService {
 
     // forgot-password
     async forgotPassword(email: string) {
-        console.log(email)
         const user = await this.userModel.findOne({ email });
-        console.log(user)
         if (!user) {
             throw new BadRequestException('Email not registered');
         }
         const verificationOTP = otpGenerator.generate(6, { upperCaseAlphabets: false, specialChars: false, lowerCaseAlphabets: false, digits: true });
         await this.userModel.findByIdAndUpdate(user.id, { verificationOTP, verified: false }, { new: true });
         sendEmail(email, 'Reset Password verification', `Enter the verification OTP to reset the password 
-        
         OTP: ${verificationOTP}`);
+
         return "verify the otp sent to your account";
     }
 
-    async confirmOTP(email: string, otp: number) {
+    async confirmOTP(email: string, otp: string) {
         const user = await this.userModel.findOne({ email });
         if (!user || !otp) {
             throw new ForbiddenException('Invalid user');
@@ -131,10 +130,12 @@ export class AuthService {
     }
 
     async updatePassword(userId: string, password: string) {
+        console.log(userId)
         const hashedPassword = await encodePassword(password);
-        await this.userModel.findByIdAndUpdate(userId, { password: hashedPassword });
+        await this.userModel.findByIdAndUpdate({ _id: userId }, { password: hashedPassword });
         return "password udpated";
     }
+
 
     async updateRefreshToken(userId: string, username: string) {
         const tokens = await this.tokenService.getTokens(userId, username);

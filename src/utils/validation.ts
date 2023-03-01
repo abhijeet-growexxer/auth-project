@@ -1,16 +1,37 @@
+import { BadRequestException } from '@nestjs/common';
 import { UserSignInModel, UserSignUpModel } from '../Models/UserModels';
+import { Constants } from "./constants"
 
-export function validateUser(userDetails: UserSignUpModel | UserSignInModel) {
-    const { email, password } = userDetails;
-    const regexEmail = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
-    const regexPassword =
-        /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
+export function validateUserSignUp(userDetails: UserSignUpModel) {
+    const { email, name, phone, username, password, dob } = userDetails;
+    if (!email || !Constants.EMAIL.test(email)) {
+        throw new BadRequestException("Invalid Email Id")
+    }
+    if (!name || !Constants.NAME.test(name)) {
+        throw new BadRequestException("Invalid name")
+    }
+    if (!password || !Constants.PASSWORD.test(password)) {
+        throw new BadRequestException("Invalid password")
+    }
+    if (!phone || !Constants.PHONE.test(phone)) {
+        throw new BadRequestException("Invalid phone number")
+    }
+    if (!dob) {
+        throw new BadRequestException("DOB cannot be blank")
+    }
+    return true
 
-    if (regexEmail.exec(email) == null) {
-        return false;
+}
+
+export function validateUserSignIn(userDetails: UserSignInModel) {
+    const { username, email, password } = userDetails
+    if ((!username && !email) || (username && email)) {
+        return new BadRequestException("Please provide username or email for sign in")
     }
-    if (regexPassword.exec(password) == null) {
-        return false;
+    if (email && !Constants.EMAIL.test(email)) {
+        return new BadRequestException("Invalid email")
     }
-    return true;
+    if (!Constants.PASSWORD.test(password)) {
+        return new BadRequestException("Invalid password")
+    }
 }
