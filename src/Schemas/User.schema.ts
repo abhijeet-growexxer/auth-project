@@ -18,9 +18,6 @@ export class User {
     password: string;
 
     @Prop()
-    dob: Date;
-
-    @Prop()
     avatar: string;
 
     @Prop({ required: true })

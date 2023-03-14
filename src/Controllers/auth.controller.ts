@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from '../Services/authService';
 import { UserSignUpModel, UserSignInModel } from '../Models/UserModels';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -58,7 +58,7 @@ export class AuthController {
     @Post('/forgot-password/:email')
     @ApiOperation({ summary: 'For reseting the password of the user' })
     async forgotPassword(
-        @Query('email') email: string,
+        @Param('email') email: string,
     ) {
         return this.authService.forgotPassword(email);
     }
@@ -66,8 +66,8 @@ export class AuthController {
     @Post('/reset-confirm-otp/:email/:otp')
     @ApiOperation({ summary: 'Confirm otp for reseting the password' })
     async confirmOTP(
-        @Query('email') email: string,
-        @Query('otp') otp: string
+        @Param('email') email: string,
+        @Param('otp') otp: string
     ) {
         return this.authService.confirmOTP(email, otp);
     }
@@ -78,7 +78,7 @@ export class AuthController {
     @ApiOperation({ summary: 'Set a new password' })
     async updatePassword(
         @Req() req: Request,
-        @Query('password') password: string
+        @Param('password') password: string
     ) {
         return this.authService.updatePassword(
             req.user['sub'],

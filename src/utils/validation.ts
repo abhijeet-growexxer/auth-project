@@ -3,7 +3,7 @@ import { UserSignInModel, UserSignUpModel } from '../Models/UserModels';
 import { Constants } from "./constants"
 
 export function validateUserSignUp(userDetails: UserSignUpModel) {
-    const { email, name, phone, username, password, dob } = userDetails;
+    const { email, name, phone, password } = userDetails;
     if (!email || !Constants.EMAIL.test(email)) {
         throw new BadRequestException("Invalid Email Id")
     }
@@ -15,9 +15,6 @@ export function validateUserSignUp(userDetails: UserSignUpModel) {
     }
     if (!phone || !Constants.PHONE.test(phone)) {
         throw new BadRequestException("Invalid phone number")
-    }
-    if (!dob) {
-        throw new BadRequestException("DOB cannot be blank")
     }
     return true
 

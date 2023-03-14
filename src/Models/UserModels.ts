@@ -7,11 +7,6 @@ export class UserSignUpModel {
         description: 'username',
     })
     username: string;
-    @ApiProperty({
-        example: '1996-11-22',
-        description: 'dob of the user (YYYY-MM-DD)',
-    })
-    dob: Date;
 
     @ApiProperty({
         example: 'Dev Test',

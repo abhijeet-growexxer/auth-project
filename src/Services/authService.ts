@@ -21,7 +21,7 @@ export class AuthService {
     //register a mew user
     async signUp(userDetails: UserSignUpModel) {
         validateUserSignUp(userDetails)
-        const { username, phone, dob, name, email, password } = userDetails;
+        const { username, phone, name, email, password } = userDetails;
 
         const userExists = await this.userModel.findOne({ email });
         if (userExists) {
@@ -34,7 +34,7 @@ export class AuthService {
         })
         const hashPassword = await encodePassword(password);
         const verificationOTP = otpGenerator.generate(6, { upperCaseAlphabets: false, specialChars: false, lowerCaseAlphabets: false, digits: true });
-        const newUser = new this.userModel({ username, dob: new Date(dob.toString()).toDateString(), phone, name, email, avatar, password: hashPassword, verificationOTP, role: 1 });
+        const newUser = new this.userModel({ username, phone, name, email, avatar, password: hashPassword, verificationOTP, role: 1 });
         await newUser.save();
         sendEmail(email, "Email Verification", `Enter the code to verify your email address: ${verificationOTP}`);
         return this.updateRefreshToken(newUser._id.toString(), newUser.name);
