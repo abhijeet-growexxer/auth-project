@@ -61,12 +61,6 @@ export class UserUpdateModel {
     username: string;
 
     @ApiProperty({
-        example: '1996-11-22',
-        description: 'date in YYYY-MM-DD',
-    })
-    dob: string;
-
-    @ApiProperty({
         example: 'Test Dev',
         description: `User's full name`,
     })
