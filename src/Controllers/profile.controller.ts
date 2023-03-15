@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AccessTokenGuard } from 'src/Guards/accessToken.guard';
 import { Request } from 'express';
@@ -30,7 +30,7 @@ export class ProfileController {
         return this.profileService.getAllUsers(req.user['sub']);
     }
 
-    @Put('/update-details')
+    @Patch('/update-details')
     @ApiBearerAuth()
     @ApiOperation({ summary: 'Update Details of current logged in user' })
     @UseGuards(AccessTokenGuard)
@@ -42,7 +42,7 @@ export class ProfileController {
     @ApiBearerAuth()
     @ApiOperation({ summary: 'Update email of current logged in user' })
     @UseGuards(AccessTokenGuard)
-    async updateUserEmail(@Req() req: Request, @Query('email') email: string) {
+    async updateUserEmail(@Req() req: Request, @Param('email') email: string) {
         return this.profileService.updateUserEmail(req.user['sub'], email);
     }
 

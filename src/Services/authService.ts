@@ -23,9 +23,11 @@ export class AuthService {
         validateUserSignUp(userDetails)
         const { username, phone, name, email, password } = userDetails;
 
-        const userExists = await this.userModel.findOne({ email });
-        if (userExists) {
-            return new ConflictException('user already exists');
+        const userEmailExists = await this.userModel.findOne({ email });
+        const usernameExists = await this.userModel.findOne({ username });
+
+        if (userEmailExists || usernameExists) {
+            return new ConflictException('user with same email or username already exists');
         }
         const avatar = gravatar.url(email, {
             s: '200',

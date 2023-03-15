@@ -15,7 +15,7 @@ export class ProfileService {
 
     //returns info of the user
     async getUser(userId: string) {
-        return this.userModel.findById(userId, '_id name avatar phone  email verified');
+        return this.userModel.findById(userId, '_id name username avatar phone  email verified role');
     }
 
     async getAllUsers(userId: string) {
@@ -28,6 +28,10 @@ export class ProfileService {
             throw new ConflictException("Cannot update user details , user not yet verified")
         }
         const { username, name, phone } = userDetails
+        const usernameExists = await this.userModel.findOne({ username })
+        if (usernameExists) { 
+            throw new ConflictException("Username already taken")
+        }
         if (!Constants.NAME.test(name)) {
             throw new BadRequestException("Invalid name")
         }
@@ -39,9 +43,14 @@ export class ProfileService {
         if (!Constants.EMAIL.test(userEmail)) {
             throw new BadRequestException("Invalid email address")
         }
+        
         const user = await this.userModel.findById(userId)
         if (user.email === userEmail) {
-            throw new ConflictException("Email Address already exists")
+            throw new ConflictException("Email Address is same")
+        }
+        const emailExists = await this.userModel.findOne({ email: userEmail })
+        if (emailExists) { 
+            throw new ConflictException("Email Address already registered")
         }
         const verifyOTP = otpGenerator.generate(6, { upperCaseAlphabets: false, specialChars: false, lowerCaseAlphabets: true, digits: true });
         sendEmail(userEmail, 'Email Confirmation', `Enter the verification OTP to update your Email address 

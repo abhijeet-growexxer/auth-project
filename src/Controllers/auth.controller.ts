@@ -50,7 +50,7 @@ export class AuthController {
     @ApiOperation({ summary: 'Verifies user account of the current logged in user' })
     async verifyOTP(
         @Req() req: Request,
-        @Query('otp') otp: string
+        @Param('otp') otp: string
     ) {
         return this.authService.verifyOTP(req.user['sub'], otp);
     }
