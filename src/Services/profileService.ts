@@ -6,6 +6,7 @@ import { UpdateUserEmailModel, UserUpdateModel } from "src/Models/UserModels";
 import { User, UserDocument } from "src/Schemas/User.schema";
 import { Constants } from "src/utils/constants";
 import { sendEmail } from "src/utils/sendEmail";
+import * as gravatar from "gravatar";
 
 @Injectable()
 export class ProfileService {
@@ -65,7 +66,12 @@ export class ProfileService {
         const user = await this.userModel.findById(userId)
         const verficiationOTP = user?.verificationOTP
         if (otp == verficiationOTP) {
-            await this.userModel.findByIdAndUpdate(userId, { verificationOTP: null, email })
+            const avatar = gravatar.url(email, {
+                s: '200',
+                r: 'pg',
+                d: 'mm'
+            })
+            await this.userModel.findByIdAndUpdate(userId, { verificationOTP: null, email, avatar })
         }
         return "Email Id verified"
     }

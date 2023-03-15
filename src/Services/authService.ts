@@ -9,7 +9,7 @@ import { TokenService } from './TokenService';
 import { encryptData, compareTokens } from '../utils/crypto';
 import * as otpGenerator from 'otp-generator';
 import { sendEmail } from '../utils/sendEmail';
-import * as gravatar from "gravatar"
+import * as gravatar from "gravatar";
 
 @Injectable()
 export class AuthService {
