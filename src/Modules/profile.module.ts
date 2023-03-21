@@ -6,7 +6,7 @@ import { User, UserSchema } from "src/Schemas/User.schema";
 import { ProfileService } from "src/Services/profileService";
 import { TokenService } from "src/Services/TokenService";
 import { AccessTokenStrategy } from "src/Strategies/accessToken.strategies";
-import { RefreshTokenStrategy } from "src/Strategies/refreshToken.Strategies";
+import { RefreshTokenStrategy } from "src/Strategies/refreshToken.strategies";
 
 @Module({
     imports: [
