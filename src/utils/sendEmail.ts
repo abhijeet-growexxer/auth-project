@@ -18,9 +18,9 @@ export async function sendEmail(toEmail: string, subject: string, message: strin
             text: message,
         });
 
-        console.log("Message sent: %s", info.messageId);
+        // console.log("Message sent: %s", info.messageId);
 
-        console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+        // console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
 
     } catch (err) {
         console.log(err)
